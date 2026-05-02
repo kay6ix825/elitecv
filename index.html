@@ -47,7 +47,6 @@
         .section-title { margin: 60px 0 30px; text-align: center; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 4px; font-size: 13px; }
 
         .plan-container { display: flex; flex-wrap: wrap; gap: 25px; justify-content: center; }
-
         .card { width: 330px; min-height: 520px; padding: 35px; border-radius: 30px; border: 1px solid var(--border); cursor: pointer; transition: 0.5s; backdrop-filter: blur(25px); display: flex; flex-direction: column; background-size: cover; background-position: center; position: relative; }
 
         .price-badge { position: absolute; top: 20px; right: 20px; background: rgba(0, 212, 255, 0.2); border: 1px solid var(--primary); padding: 5px 15px; border-radius: 50px; font-weight: 800; font-size: 14px; color: #fff; backdrop-filter: blur(5px); }
@@ -61,11 +60,9 @@
 
         .card h3 { margin: 10px 0; font-size: 24px; color: var(--primary); }
         .card-pos { font-style: italic; color: #94a3b8; font-size: 13px; margin-bottom: 15px; display: block; }
-
         .points { padding: 0; list-style: none; margin: 0; flex-grow: 1; }
         .points li { font-size: 12.5px; color: #e2e8f0; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 8px; }
         .points li::before { content: "✔"; color: var(--primary); font-weight: bold; }
-
         .delivery-tag { margin-top: 15px; font-weight: 800; color: #22c55e; font-size: 11px; letter-spacing: 1.5px; }
 
         .cat-container { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
@@ -73,11 +70,10 @@
         .cat-btn.active { background: var(--accent); border-color: var(--accent); }
 
         input, textarea { width: 100%; padding: 18px; margin: 12px 0; border-radius: 18px; border: 1px solid var(--border); background: rgba(0, 0, 0, 0.4); color: white; box-sizing: border-box; outline: none; }
+        textarea { min-height: 100px; resize: vertical; }
 
         .submission-footer { text-align: center; background: rgba(255, 255, 255, 0.02); padding: 45px; border-radius: 35px; margin-top: 50px; border: 1px solid var(--border); }
-
         .wa-link { display: inline-flex; align-items: center; gap: 12px; color: #25d366; text-decoration: none; font-weight: 700; margin-bottom: 30px; font-size: 17px; }
-
         .submit-btn { width: 100%; padding: 24px; background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; color: white; font-weight: 800; font-size: 18px; border-radius: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 3px; }
 
         #form, #catArea { display: none; }
@@ -93,11 +89,9 @@
 </header>
 
 <div class="container">
-
     <div class="section-title">Step 1: Choose Your Plan</div>
 
     <div class="plan-container">
-
         <div class="card basic-card" onclick="setPlan('Basic CV', this)">
             <div class="price-badge">RM 25</div>
             <h3>BASIC CV</h3>
@@ -139,7 +133,6 @@
             </ul>
             <div class="delivery-tag">⚡ DELIVERED IN 24 HOURS</div>
         </div>
-
     </div>
 
     <div id="catArea">
@@ -159,7 +152,7 @@
         <input id="phone" placeholder="WhatsApp Number">
         <input id="email" placeholder="Email Address">
         <input id="location" placeholder="Location">
-        <input id="languages" placeholder="Languages">
+        <input id="languages" placeholder="Languages (with levels)">
 
         <div id="dynamicFields"></div>
 
@@ -173,7 +166,6 @@
             <button class="submit-btn" onclick="submitOrder()">Submit and Save Order</button>
         </div>
     </div>
-
 </div>
 
 <script>
@@ -198,6 +190,7 @@ function setPlan(p, el) {
     document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     document.getElementById("catArea").style.display = "block";
+    document.getElementById("catArea").scrollIntoView({behavior: 'smooth'});
 }
 
 function setCat(c, el) {
@@ -207,12 +200,24 @@ function setCat(c, el) {
     document.getElementById("form").style.display = "block";
 
     let html = "";
+
     if(c === "Student") {
-        html = `<input id="uni"><textarea id="skills"></textarea>`;
+        html = `
+        <input id="uni" placeholder="University Name">
+        <textarea id="skills" placeholder="Skills"></textarea>
+        <textarea id="projects" placeholder="Projects"></textarea>
+        <textarea id="extra" placeholder="Anything you would like to add?"></textarea>`;
     } else if(c === "Graduate") {
-        html = `<input id="uni"><textarea id="intern"></textarea>`;
+        html = `
+        <input id="uni" placeholder="University Name">
+        <textarea id="skills" placeholder="Skills"></textarea>
+        <textarea id="intern" placeholder="Internships"></textarea>
+        <textarea id="extra" placeholder="Anything you would like to add?"></textarea>`;
     } else {
-        html = `<input id="job"><textarea id="exp"></textarea>`;
+        html = `
+        <input id="job" placeholder="Job Title">
+        <textarea id="skills" placeholder="Skills"></textarea>
+        <textarea id="extra" placeholder="Anything you would like to add?"></textarea>`;
     }
 
     document.getElementById("dynamicFields").innerHTML = html;
@@ -222,7 +227,7 @@ function submitOrder() {
     const name = document.getElementById("name").value;
 
     if(!name || !selectedPlan || !selectedCat) {
-        alert("Please complete all required fields.");
+        alert("Please complete required fields");
         return;
     }
 
@@ -231,13 +236,14 @@ function submitOrder() {
         phone: document.getElementById("phone").value,
         email: document.getElementById("email").value,
         location: document.getElementById("location").value,
+        languages: document.getElementById("languages").value,
         plan: selectedPlan,
         category: selectedCat,
         timestamp: new Date().toLocaleString()
     };
 
     db.collection("orders").add(data).then(() => {
-        window.open(`https://wa.me/60145626831?text=New Order: ${name}`);
+        window.open(`https://wa.me/60145626831`);
     });
 }
 </script>
