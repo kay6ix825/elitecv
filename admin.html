@@ -1,92 +1,158 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>EliteCV Admin</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EliteCV Admin Dashboard</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
 <style>
-body{
-background:#050816;
-color:white;
-font-family:Arial;
-padding:20px;
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #020617;
+    color: white;
 }
 
-table{
-width:100%;
-border-collapse:collapse;
+header {
+    text-align: center;
+    padding: 30px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-th,td{
-padding:10px;
-border-bottom:1px solid #333;
-text-align:left;
+h1 {
+    color: #00d4ff;
 }
 
-th{
-color:#00d4ff;
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+.card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-right: 5px;
+}
+
+.plan { background: #00d4ff33; }
+.cat { background: #7c3aed33; }
+
+.btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.delete {
+    background: #ef4444;
+    color: white;
+}
+
+.refresh {
+    background: #22c55e;
+    color: white;
+    margin: 20px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>📊 Admin Dashboard</h1>
+<header>
+    <h1>EliteCV Admin Dashboard</h1>
+    <p>All customer orders appear here in real time</p>
+</header>
 
-<table>
-<tr>
-<th>Name</th>
-<th>Plan</th>
-<th>Category</th>
-<th>Phone</th>
-<th>Email</th>
-<th>Location</th>
-<th>Date</th>
-</tr>
+<div class="container">
 
-<tbody id="data"></tbody>
-</table>
+<button class="btn refresh" onclick="loadData()">Refresh Orders</button>
+
+<div id="orders"></div>
+
+</div>
 
 <script>
 
 const firebaseConfig = {
-apiKey: "AIzaSyA-j4jhXjMK6jDb__AaYdnJixOJu014e5w",
-authDomain: "elitecv-a7f4b.firebaseapp.com",
-projectId: "elitecv-a7f4b",
-storageBucket: "elitecv-a7f4b.firebaseapp.com",
-messagingSenderId: "468332535927",
-appId: "1:468332535927:web:79b6461281b56896482672"
+    apiKey: "AIzaSyA-j4jhXjMK6jDb__AaYdnJixOJu014e5w",
+    authDomain: "elitecv-a7f4b.firebaseapp.com",
+    projectId: "elitecv-a7f4b",
+    storageBucket: "elitecv-a7f4b.firebasestorage.app",
+    messagingSenderId: "468332535927",
+    appId: "1:468332535927:web:79b6461281b56896482672",
+    measurementId: "G-FMRR5MBH1F"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// LIVE DATA
-db.collection("orders")
-.orderBy("timestamp","desc")
-.onSnapshot(snapshot=>{
+function loadData() {
+    const container = document.getElementById("orders");
+    container.innerHTML = "Loading...";
 
-document.getElementById("data").innerHTML = "";
+    db.collection("orders").orderBy("timestamp", "desc").get()
+    .then(snapshot => {
 
-snapshot.forEach(doc=>{
-let d = doc.data();
+        container.innerHTML = "";
 
-document.getElementById("data").innerHTML += `
-<tr>
-<td>${d.name || ""}</td>
-<td>${d.plan || ""}</td>
-<td>${d.category || ""}</td>
-<td>${d.phone || ""}</td>
-<td>${d.email || ""}</td>
-<td>${d.location || ""}</td>
-<td>${d.timestamp || ""}</td>
-</tr>
-`;
-});
+        snapshot.forEach(doc => {
+            const d = doc.data();
 
-});
+            container.innerHTML += `
+                <div class="card">
+                    <h3>${d.name}</h3>
+
+                    <span class="badge plan">${d.plan}</span>
+                    <span class="badge cat">${d.category}</span>
+
+                    <p><b>Phone:</b> ${d.phone}</p>
+                    <p><b>Email:</b> ${d.email}</p>
+                    <p><b>Location:</b> ${d.location}</p>
+                    <p><b>Languages:</b> ${d.languages}</p>
+
+                    <hr>
+
+                    <p><b>University / Job:</b> ${d.university || d.job_title || "-"}</p>
+                    <p><b>Skills:</b> ${d.skills || "-"}</p>
+                    <p><b>Projects:</b> ${d.projects || "-"}</p>
+                    <p><b>Internships:</b> ${d.internships || "-"}</p>
+                    <p><b>Extra:</b> ${d.additional_info || "-"}</p>
+
+                    <p><small>${d.timestamp}</small></p>
+
+                    <button class="btn delete" onclick="deleteOrder('${doc.id}')">Delete</button>
+                </div>
+            `;
+        });
+
+    });
+}
+
+function deleteOrder(id) {
+    if(confirm("Delete this order?")) {
+        db.collection("orders").doc(id).delete().then(() => {
+            loadData();
+        });
+    }
+}
+
+loadData();
 
 </script>
 
