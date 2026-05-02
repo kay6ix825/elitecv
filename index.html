@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EliteCV | Master Your First Impression</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --accent: #7c3aed;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body { 
+            margin: 0; 
+            font-family: 'Inter', sans-serif; 
+            color: white; 
+            background: #020617; 
+            overflow-x: hidden; 
+            line-height: 1.5;
+        }
+
+        body::before { 
+            content: ""; 
+            position: fixed; 
+            width: 100%; 
+            height: 100%; 
+            background: radial-gradient(circle at top right, rgba(124, 58, 237, 0.15), transparent),
+                        linear-gradient(rgba(2, 6, 23, 0.85), rgba(2, 6, 23, 0.95)),
+                        url('https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1600'); 
+            background-size: cover; 
+            z-index: -1; 
+        }
+
+        header { text-align: center; padding: 60px 20px; }
+        .main-logo { width: 140px; filter: drop-shadow(0 0 25px var(--primary)); animation: float 5s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+        h1 { font-size: 42px; font-weight: 800; background: linear-gradient(90deg, #fff, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { max-width: 700px; margin: auto; color: #94a3b8; }
+
+        .container { max-width: 1150px; margin: auto; padding: 20px; }
+        .section-title { margin: 60px 0 30px; text-align: center; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 4px; font-size: 13px; }
+
+        .plan-container { display: flex; flex-wrap: wrap; gap: 25px; justify-content: center; }
+
+        .card { width: 330px; min-height: 520px; padding: 35px; border-radius: 30px; border: 1px solid var(--border); cursor: pointer; transition: 0.5s; backdrop-filter: blur(25px); display: flex; flex-direction: column; background-size: cover; background-position: center; position: relative; }
+
+        .price-badge { position: absolute; top: 20px; right: 20px; background: rgba(0, 212, 255, 0.2); border: 1px solid var(--primary); padding: 5px 15px; border-radius: 50px; font-weight: 800; font-size: 14px; color: #fff; backdrop-filter: blur(5px); }
+
+        .basic-card { background-image: linear-gradient(rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.98)), url('https://images.unsplash.com/photo-1512428559083-a401a30c9550?q=80&w=500'); }
+        .ats-card { background-image: linear-gradient(rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.98)), url('https://images.unsplash.com/photo-1454165833767-027ffea9e77b?q=80&w=500'); }
+        .elite-card { background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(2, 6, 23, 0.99)), url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=500'); border: 1px solid var(--primary); }
+
+        .card:hover { transform: translateY(-15px); border-color: var(--primary); box-shadow: 0 0 30px rgba(0, 212, 255, 0.2); }
+        .card.active { border: 2px solid var(--primary); background-color: rgba(0, 212, 255, 0.1); }
+
+        .card h3 { margin: 10px 0; font-size: 24px; color: var(--primary); }
+        .card-pos { font-style: italic; color: #94a3b8; font-size: 13px; margin-bottom: 15px; display: block; }
+
+        .points { padding: 0; list-style: none; margin: 0; flex-grow: 1; }
+        .points li { font-size: 12.5px; color: #e2e8f0; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 8px; }
+        .points li::before { content: "✔"; color: var(--primary); font-weight: bold; }
+
+        .delivery-tag { margin-top: 15px; font-weight: 800; color: #22c55e; font-size: 11px; letter-spacing: 1.5px; }
+
+        .cat-container { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .cat-btn { padding: 16px 38px; border-radius: 100px; border: 1px solid var(--border); background: var(--glass); color: white; cursor: pointer; transition: 0.3s; font-weight: 600; }
+        .cat-btn.active { background: var(--accent); border-color: var(--accent); }
+
+        input, textarea { width: 100%; padding: 18px; margin: 12px 0; border-radius: 18px; border: 1px solid var(--border); background: rgba(0, 0, 0, 0.4); color: white; box-sizing: border-box; outline: none; }
+
+        .submission-footer { text-align: center; background: rgba(255, 255, 255, 0.02); padding: 45px; border-radius: 35px; margin-top: 50px; border: 1px solid var(--border); }
+
+        .wa-link { display: inline-flex; align-items: center; gap: 12px; color: #25d366; text-decoration: none; font-weight: 700; margin-bottom: 30px; font-size: 17px; }
+
+        .submit-btn { width: 100%; padding: 24px; background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; color: white; font-weight: 800; font-size: 18px; border-radius: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 3px; }
+
+        #form, #catArea { display: none; }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <img src="logo.png.jpeg" class="main-logo" alt="EliteCV Logo" onerror="this.src='https://via.placeholder.com/150/020617/00d4ff?text=EliteCV'">
+    <h1>Elevate Your Career</h1>
+    <p class="subtitle">Precision-engineered resume strategies for the modern job market.</p>
+</header>
+
+<div class="container">
+
+    <div class="section-title">Step 1: Choose Your Plan</div>
+
+    <div class="plan-container">
+
+        <div class="card basic-card" onclick="setPlan('Basic CV', this)">
+            <div class="price-badge">RM 25</div>
+            <h3>BASIC CV</h3>
+            <span class="card-pos">“First impression weapon”</span>
+            <ul class="points">
+                <li>Face-to-face interview focused</li>
+                <li>Clean and simple HR-friendly format</li>
+                <li>Confidence & personality highlighting</li>
+                <li>Walk-in interview optimized</li>
+                <li>Instant job-ready presentation</li>
+            </ul>
+            <div class="delivery-tag">⚡ DELIVERED IN 24 HOURS</div>
+        </div>
+
+        <div class="card ats-card" onclick="setPlan('ATS CV', this)">
+            <div class="price-badge">RM 35</div>
+            <h3>ATS CV</h3>
+            <span class="card-pos">“Gets past bots & systems”</span>
+            <ul class="points">
+                <li>ATS (Applicant Tracking System) optimized</li>
+                <li>Keyword-driven structure</li>
+                <li>Job portal ready (LinkedIn, Indeed, etc.)</li>
+                <li>Higher online visibility</li>
+                <li>Auto-filter bypass formatting</li>
+            </ul>
+            <div class="delivery-tag">⚡ DELIVERED IN 24 HOURS</div>
+        </div>
+
+        <div class="card elite-card" onclick="setPlan('Light CV', this)">
+            <div class="price-badge">RM 50</div>
+            <h3>LIGHT CV</h3>
+            <span class="card-pos">“Best of both worlds”</span>
+            <ul class="points">
+                <li>ATS + Human readable combined</li>
+                <li>Works for online + physical interviews</li>
+                <li>Higher interview conversion rate</li>
+                <li>One CV for all applications</li>
+                <li>Most recommended option</li>
+            </ul>
+            <div class="delivery-tag">⚡ DELIVERED IN 24 HOURS</div>
+        </div>
+
+    </div>
+
+    <div id="catArea">
+        <div class="section-title">Step 2: Define Your Level</div>
+        <div class="cat-container">
+            <div class="cat-btn" onclick="setCat('Student', this)">Student</div>
+            <div class="cat-btn" onclick="setCat('Graduate', this)">Graduate</div>
+            <div class="cat-btn" onclick="setCat('Professional', this)">Professional</div>
+        </div>
+    </div>
+
+    <div id="form">
+        <div class="section-title">Step 3: Personal Details</div>
+
+        <input id="name" placeholder="Full Name">
+        <input id="birthdate" placeholder="Birth Date">
+        <input id="phone" placeholder="WhatsApp Number">
+        <input id="email" placeholder="Email Address">
+        <input id="location" placeholder="Location">
+        <input id="languages" placeholder="Languages">
+
+        <div id="dynamicFields"></div>
+
+        <div class="submission-footer">
+            <p style="color:#cbd5e1;">Your CV will be created after confirmation.</p>
+
+            <a class="wa-link" href="https://wa.me/60145626831" target="_blank">
+                WhatsApp Confirmation
+            </a>
+
+            <button class="submit-btn" onclick="submitOrder()">Submit and Save Order</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyA-j4jhXjMK6jDb__AaYdnJixOJu014e5w",
+    authDomain: "elitecv-a7f4b.firebaseapp.com",
+    projectId: "elitecv-a7f4b",
+    storageBucket: "elitecv-a7f4b.firebasestorage.app",
+    messagingSenderId: "468332535927",
+    appId: "1:468332535927:web:79b6461281b56896482672",
+    measurementId: "G-FMRR5MBH1F"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let selectedPlan = "";
+let selectedCat = "";
+
+function setPlan(p, el) {
+    selectedPlan = p;
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById("catArea").style.display = "block";
+}
+
+function setCat(c, el) {
+    selectedCat = c;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById("form").style.display = "block";
+
+    let html = "";
+    if(c === "Student") {
+        html = `<input id="uni"><textarea id="skills"></textarea>`;
+    } else if(c === "Graduate") {
+        html = `<input id="uni"><textarea id="intern"></textarea>`;
+    } else {
+        html = `<input id="job"><textarea id="exp"></textarea>`;
+    }
+
+    document.getElementById("dynamicFields").innerHTML = html;
+}
+
+function submitOrder() {
+    const name = document.getElementById("name").value;
+
+    if(!name || !selectedPlan || !selectedCat) {
+        alert("Please complete all required fields.");
+        return;
+    }
+
+    const data = {
+        name,
+        phone: document.getElementById("phone").value,
+        email: document.getElementById("email").value,
+        location: document.getElementById("location").value,
+        plan: selectedPlan,
+        category: selectedCat,
+        timestamp: new Date().toLocaleString()
+    };
+
+    db.collection("orders").add(data).then(() => {
+        window.open(`https://wa.me/60145626831?text=New Order: ${name}`);
+    });
+}
+</script>
+
+</body>
+</html>

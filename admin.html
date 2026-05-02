@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>EliteCV Admin</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<style>
+body{
+background:#050816;
+color:white;
+font-family:Arial;
+padding:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+padding:10px;
+border-bottom:1px solid #333;
+text-align:left;
+}
+
+th{
+color:#00d4ff;
+}
+</style>
+</head>
+
+<body>
+
+<h1>📊 Admin Dashboard</h1>
+
+<table>
+<tr>
+<th>Name</th>
+<th>Plan</th>
+<th>Category</th>
+<th>Phone</th>
+<th>Email</th>
+<th>Location</th>
+<th>Date</th>
+</tr>
+
+<tbody id="data"></tbody>
+</table>
+
+<script>
+
+const firebaseConfig = {
+apiKey: "AIzaSyA-j4jhXjMK6jDb__AaYdnJixOJu014e5w",
+authDomain: "elitecv-a7f4b.firebaseapp.com",
+projectId: "elitecv-a7f4b",
+storageBucket: "elitecv-a7f4b.firebaseapp.com",
+messagingSenderId: "468332535927",
+appId: "1:468332535927:web:79b6461281b56896482672"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// LIVE DATA
+db.collection("orders")
+.orderBy("timestamp","desc")
+.onSnapshot(snapshot=>{
+
+document.getElementById("data").innerHTML = "";
+
+snapshot.forEach(doc=>{
+let d = doc.data();
+
+document.getElementById("data").innerHTML += `
+<tr>
+<td>${d.name || ""}</td>
+<td>${d.plan || ""}</td>
+<td>${d.category || ""}</td>
+<td>${d.phone || ""}</td>
+<td>${d.email || ""}</td>
+<td>${d.location || ""}</td>
+<td>${d.timestamp || ""}</td>
+</tr>
+`;
+});
+
+});
+
+</script>
+
+</body>
+</html>
